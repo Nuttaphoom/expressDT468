@@ -2,8 +2,8 @@ const express = require("express");
 const app = express() ; 
 const port = process.env.PORT || 3000 ;
 
-const pgp = require('pg-promise')
-const db = pgb('postgres://db_486database_user:KVIOOYGX8ptKnbB3PcS4AmcFlTvLE00j@dpg-cgs1r71jvhttfm683r20-a/db_486database')
+const pgp = require('pg-promise')(/* options */)
+const db = pgp('postgres://db_486database_user:KVIOOYGX8ptKnbB3PcS4AmcFlTvLE00j@dpg-cgs1r71jvhttfm683r20-a/db_486database')
 
 const bodyParser = require('body-parser')
 app.use(bodyParser.json()) 
