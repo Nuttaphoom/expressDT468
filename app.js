@@ -18,7 +18,8 @@ app.get('/', (req,res) =>  {
 }) 
 
 app.get('/students',(req,res) => {
-    db.any('select * from public.student')
+    const {id} = req.params ;
+    db.any('select * from public.student where "id" = $1',id)
     .then ((data) => {
         console.log('all student: ' , data)
         res.json(data)   
@@ -28,6 +29,20 @@ app.get('/students',(req,res) => {
         res.send("ERROR: Can't get the dataa")
     })
 })
+
+app.post('/student',(req,res) => {
+    console.log('got body: ', req.body);
+    const {id} = req.body ; 
+    db.any('select * from public.student where "id" = $1',id)
+        .then((data) => { 
+            console.log('DATA',data) 
+            res.json(data) 
+        }) 
+        .catch((error) => {
+            console.log('ERROR:',error) 
+            res.send("ERROR: Can't get data") 
+        })
+});
 
 app.get('/cat', (req,res) =>  {
     const {color,region} = req.query;
