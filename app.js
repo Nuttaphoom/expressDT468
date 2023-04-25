@@ -17,7 +17,7 @@ app.get('/', (req,res) =>  {
     res.send('Hello World1!!')
 }) 
 
-app.get('/students',(req,res) => {
+app.get('/students/:id',(req,res) => {
     const {id} = req.params ;
     db.any('select * from public.student where "id" = $1',id)
     .then ((data) => {
