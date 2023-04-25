@@ -20,7 +20,7 @@ app.get('/', (req,res) =>  {
 app.get('/students',(req,res) => {
     db.any('select * from public.student')
     .then ((data) => {
-        console.log('all student: ' . data)
+        console.log('all student: ' , data)
         res.json(data)   
     })
     .catch((error) => {
