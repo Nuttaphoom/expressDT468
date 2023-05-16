@@ -24,7 +24,7 @@ app.use(cors({
 
 
 app.get('/', (req, res) => {
-  res.send('Hello World!')
+  res.send('Hello World! 22')
 })
 
 app.post('/', (req, res) => {
