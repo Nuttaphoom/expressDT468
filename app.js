@@ -4,34 +4,14 @@ const cors = require('cors');
 
 const port = process.env.PORT || 4000;
 const pgp = require('pg-promise')(/* options */)
-const db = pgp('postgres://db_486database_user:KVIOOYGX8ptKnbB3PcS4AmcFlTvLE00j@dpg-cgs1r71jvhttfm683r20-a.oregon-postgres.render.com/db_486database?ssl=true') 
+const db = pgp('postgres://db_486database_user:KVIOOYGX8ptKnbB3PcS4AmcFlTvLE00j@dpg-cgs1r71jvhttfm683r20-a.oregon-postgres.render.com/db_486database?ssl=true')
 
 const top3Course = [{ code: "DT160", cname: "C Programming", description: "C Dummy text for printing" },
 { code: "DT161", cname: "C++ Programming", description: "C++ Dummy text for printing " },
 { code: "DT261", cname: "Data Programming", description: "Data programming Dummy text for printing" }
 ]
 
-const reservationForm = [{ roomid: 1, reservationday: 29, reservationmonth: 5, reservationyear: 2023, personname: 'Arm' },
-{ roomid: 3, reservationday: 29, reservationmonth: 5, reservationyear: 2023, personname: 'May' },
-{ roomid: 2, reservationday: 27, reservationmonth: 5, reservationyear: 2023, personname: 'Tony' }]
-
-
-const freeRoom = [{ roomid: 1, roomcost: 650, package: 'StudioA' },
-{ roomid: 2, roomcost: 650, package: 'StudioA' },
-{ roomid: 3, roomcost: 650, package: 'StudioA' },
-{ roomid: 4, roomcost: 650, package: 'StudioA' },
-{ roomid: 5, roomcost: 650, package: 'StudioA' },
-{ roomid: 6, roomcost: 650, package: 'StudioB' },
-{ roomid: 7, roomcost: 650, package: 'StudioB' },
-{ roomid: 8, roomcost: 650, package: 'StudioB' },
-{ roomid: 9, roomcost: 650, package: 'StudioB' },
-{ roomid: 10, roomcost: 650, package: 'StudioB' },]
-
-const freeRoom2 = [
-  { roomid: 2, roomcost: 650, package: 'StudioA' },
-  { roomid: 3, roomcost: 650, package: 'StudioA' },
-  { roomid: 4, roomcost: 650, package: 'StudioA' },]
-
+ 
 
 const bodyParser = require('body-parser')
 app.use(bodyParser.json())
@@ -86,7 +66,7 @@ app.get('/students', (req, res) => {
 })
 
 app.get('/students/:id', (req, res) => {
-  const { id } = parseInt(req.params.index) ;
+  const { id } = parseInt(req.params.index);
   db.any('select * from public.student where "id" = $1', id)
     .then((data) => {
       console.log('all student: ', data)
@@ -98,19 +78,157 @@ app.get('/students/:id', (req, res) => {
     })
 })
 
+app.get('/getReservedRoom/:date/:month/:year', (req, res) => {
+  const d = parseInt(req.params.date)
+  const m = parseInt(req.params.month)
+  const y = parseInt(req.params.year)
+
+  db.any(`SELECT * FROM room 
+  LEFT JOIN reservationform ON room.roomid = reservationform.reservationroomid 
+  AND( reservationform.reservationday = ${d} AND reservationform.reservationmonth = ${m} AND reservationform.reservationyear = ${y}) 
+  WHERE reservationform.reservationroomid IS NOT NULL;`)    .then((data) => {
+      res.json(data)
+    })
+    .catch((error) => {
+      console.log('ERROR:', error)
+      res.send("ERROR: can't get data")
+    })
+})
+app.get('/getServices/:packageName', (req, res) => {
+  const packageName = req.params.packageName  ;  
+
+  db.any('select * from roomservices where package = $1',packageName)
+    .then((data) => {
+      console.log('all student: ', data)
+      res.json(data)
+    })
+    .catch((error) => {
+      console.log('ERROR:', error)
+      res.send("ERROR: can't get data")
+    })
+})
 
 
 app.get('/getFreeRoom/:date/:month/:year', (req, res) => {
+  const d = parseInt(req.params.date)
+  const m = parseInt(req.params.month)
+  const y = parseInt(req.params.year)
+
+  
+  db.any(`SELECT * FROM room 
+  LEFT JOIN reservationform ON room.roomid = reservationform.reservationroomid 
+  AND( reservationform.reservationday = ${d} AND reservationform.reservationmonth = ${m} AND reservationform.reservationyear = ${y}) 
+  WHERE reservationform.reservationroomid IS NULL;`)
+    .then((data) => {
+      console.log('DATA:', data)
+      res.json(data)
+    })
+    .catch((error) => {
+      console.log('ERROR:', error)
+      res.send("ERROR:Can't get data")
+    })
+     
+    /*
   //Should fetch data 
-  const date =  parseInt(req.params.date) ;  
- 
-   if ( date=== 1) {
+  const date = parseInt(req.params.date);
+  if (date === 1) {
     res.json({ result: freeRoom })
   } else {
     res.json({ result: freeRoom2 })
 
-  }
+  }*/
 })
+
+app.get('/getAdminKey', (req, res) => {
+
+  db.any(`SELECT * FROM resortadminid`) 
+
+    .then((data) => {
+      console.log('DATA:', data)
+      res.json(data)
+    })
+    .catch((error) => {
+      console.log('ERROR:', error)
+      res.send("ERROR:Can't get data")
+    })
+ 
+})
+
+app.get('/getReservedRoomFromReservationData/:date/:month/:year/:roomid', (req, res) => {
+  const d = parseInt(req.params.date)
+  const m = parseInt(req.params.month)
+  const y = parseInt(req.params.year)
+  const roomid = parseInt(req.params.roomid) 
+
+  db.any(`SELECT * from reservationform where reservationroomid = ${roomid} and reservationday = ${d} and reservationmonth = ${m} and reservationyear = ${y}`) 
+
+    .then((data) => {
+      console.log('DATA:', data)
+      res.json(data)
+    })
+    .catch((error) => {
+      console.log('ERROR:', error)
+      res.send("ERROR:Can't get data")
+    })
+ 
+})
+
+app.get('/removeReservation/:date/:month/:year/:roomid', (req, res) => {
+  const d = parseInt(req.params.date)
+  const m = parseInt(req.params.month)
+  const y = parseInt(req.params.year)
+  const roomid = parseInt(req.params.roomid) 
+  
+  db.none(`DELETE from reservationform where reservationroomid = ${roomid} and reservationday = ${d} and reservationmonth = ${m} and reservationyear = ${y}`) 
+
+    .then((data) => {
+      console.log('DATA:', data)
+      res.json(data)
+    })
+    .catch((error) => {
+      console.log('ERROR:', error)
+      res.send("ERROR:Can't get data")
+    })
+ 
+})
+
+
+app.get('/reserve/:date/:month/:year/:personname/:personid/:personphone/:roomid', (req, res) => {
+  const d = parseInt(req.params.date)
+  const m = parseInt(req.params.month)
+  const y = parseInt(req.params.year)
+  const na = (req.params.personname)
+  const id = parseInt(req.params.roomid) 
+  const phone = parseInt(req.params.personphone) 
+  const personID = parseInt(req.params.personid)  
+
+
+  db.none(`INSERT INTO reservationform (reservationday,reservationmonth, reservationyear, personname, reservationroomid) 
+  VALUES ($1,$2,$3,$4,$5)`, [d, m, y, na, id])
+
+  db.none(`INSERT INTO person (personname,idcard,phonenumber)
+  VALUES ($1,$2,$3)`, [na, personID,phone])
+
+    .then((data) => {
+      console.log('DATA:', data)
+      res.json(data)
+    })
+    .catch((error) => {
+      console.log('ERROR:', error)
+      res.send("ERROR:Can't get data")
+    })
+  //Should fetch data 
+  /*const date = parseInt(req.params.date);
+
+  if (date === 1) {
+    res.json({ result: freeRoom })
+  } else {
+    res.json({ result: freeRoom2 })
+
+  }*/
+})
+
+
 app.post('/student', (req, res) => {
   console.log('Got body:', req.body);
   const { id } = req.body;
